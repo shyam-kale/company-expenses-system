@@ -1,0 +1,1136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ExpenseFlow - Advanced Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #0a0e27;
+            min-height: 100vh;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+        
+        /* Animated Background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(120, 119, 198, 0.3), transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(255, 107, 107, 0.3), transparent 50%),
+                radial-gradient(circle at 40% 20%, rgba(72, 219, 251, 0.3), transparent 50%);
+            animation: backgroundShift 15s ease infinite;
+            z-index: -1;
+        }
+        
+        @keyframes backgroundShift {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.1); }
+        }
+        
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .header {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 30px 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: slideDown 0.6s ease;
+        }
+        
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .header h1 {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 3em;
+            margin-bottom: 15px;
+            font-weight: 800;
+            letter-spacing: -1px;
+        }
+        
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 1.1em;
+        }
+        
+        .status-dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #10b981, #34d399);
+            animation: pulse 2s infinite;
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.6);
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(1.2); }
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            animation: fadeInUp 0.6s ease backwards;
+        }
+        
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), transparent);
+            opacity: 0;
+            transition: opacity 0.4s;
+        }
+        
+        .card:hover::before {
+            opacity: 1;
+        }
+        
+        .card:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.4);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+        
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .card:nth-child(1) { animation-delay: 0.1s; }
+        .card:nth-child(2) { animation-delay: 0.2s; }
+        .card:nth-child(3) { animation-delay: 0.3s; }
+        .card:nth-child(4) { animation-delay: 0.4s; }
+        
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+        
+        .card-title {
+            font-size: 1.1em;
+            color: rgba(255, 255, 255, 0.7);
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+        
+        .card-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2em;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .card-value {
+            font-size: 3em;
+            font-weight: 800;
+            color: #fff;
+            margin-bottom: 15px;
+            text-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
+            animation: countUp 1s ease;
+        }
+        
+        @keyframes countUp {
+            from { opacity: 0; transform: scale(0.5); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        
+        .card-change {
+            font-size: 1em;
+            color: #10b981;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .card-change.negative {
+            color: #ef4444;
+        }
+        
+        .card-change::before {
+            content: '↗';
+            font-size: 1.2em;
+        }
+        
+        .card-change.negative::before {
+            content: '↘';
+        }
+        
+        /* Charts Section */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .chart-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: fadeInUp 0.8s ease backwards;
+        }
+        
+        .chart-card h2 {
+            color: #fff;
+            margin-bottom: 25px;
+            font-size: 1.5em;
+            font-weight: 700;
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 350px;
+        }
+        
+        .chart-container canvas {
+            max-height: 100%;
+        }
+        
+        .expense-form {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 35px;
+            margin-bottom: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: fadeInUp 1s ease backwards;
+        }
+        
+        .expense-form h2 {
+            color: #fff;
+            margin-bottom: 25px;
+            font-size: 1.8em;
+            font-weight: 700;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 10px;
+            color: rgba(255, 255, 255, 0.9);
+            font-weight: 600;
+            font-size: 1.05em;
+        }
+        
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 15px 20px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            font-size: 1.05em;
+            color: #fff;
+            transition: all 0.3s;
+        }
+        
+        .form-group input::placeholder,
+        .form-group textarea::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            background: rgba(255, 255, 255, 0.12);
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        }
+        
+        .form-group select option {
+            background: #1a1f3a;
+            color: #fff;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 18px 50px;
+            font-size: 1.15em;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s;
+        }
+        
+        .btn:hover::before {
+            left: 100%;
+        }
+        
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.6);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .expenses-list {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 35px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: fadeInUp 1.2s ease backwards;
+        }
+        
+        .expenses-list h2 {
+            color: #fff;
+            margin-bottom: 25px;
+            font-size: 1.8em;
+            font-weight: 700;
+        }
+        
+        .expense-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 25px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s;
+            border-radius: 12px;
+        }
+        
+        .expense-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            transform: translateX(10px);
+        }
+        
+        .expense-item:last-child {
+            border-bottom: none;
+        }
+        
+        .expense-info h3 {
+            color: #fff;
+            margin-bottom: 8px;
+            font-size: 1.2em;
+        }
+        
+        .expense-info p {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.95em;
+            margin-bottom: 5px;
+        }
+        
+        .expense-amount {
+            font-size: 1.8em;
+            font-weight: 800;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .expense-category {
+            display: inline-block;
+            padding: 6px 18px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 600;
+            margin-top: 8px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .category-office { 
+            background: rgba(59, 130, 246, 0.2); 
+            color: #60a5fa;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+        .category-meals { 
+            background: rgba(251, 191, 36, 0.2); 
+            color: #fbbf24;
+            border: 1px solid rgba(251, 191, 36, 0.3);
+        }
+        .category-travel { 
+            background: rgba(16, 185, 129, 0.2); 
+            color: #34d399;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+        .category-software { 
+            background: rgba(139, 92, 246, 0.2); 
+            color: #a78bfa;
+            border: 1px solid rgba(139, 92, 246, 0.3);
+        }
+        .category-hardware { 
+            background: rgba(236, 72, 153, 0.2); 
+            color: #f472b6;
+            border: 1px solid rgba(236, 72, 153, 0.3);
+        }
+        .category-marketing { 
+            background: rgba(249, 115, 22, 0.2); 
+            color: #fb923c;
+            border: 1px solid rgba(249, 115, 22, 0.3);
+        }
+        .category-training { 
+            background: rgba(20, 184, 166, 0.2); 
+            color: #5eead4;
+            border: 1px solid rgba(20, 184, 166, 0.3);
+        }
+        .category-other { 
+            background: rgba(148, 163, 184, 0.2); 
+            color: #cbd5e1;
+            border: 1px solid rgba(148, 163, 184, 0.3);
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 60px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        .spinner {
+            border: 5px solid rgba(255, 255, 255, 0.1);
+            border-top: 5px solid #667eea;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 1s linear infinite;
+            margin: 30px auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .success-message {
+            background: rgba(16, 185, 129, 0.2);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            color: #34d399;
+            padding: 18px 25px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            display: none;
+            font-weight: 600;
+            animation: slideIn 0.3s ease;
+        }
+        
+        .error-message {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #f87171;
+            padding: 18px 25px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            display: none;
+            font-weight: 600;
+            animation: slideIn 0.3s ease;
+        }
+        
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 12px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: rgba(102, 126, 234, 0.5);
+            border-radius: 6px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(102, 126, 234, 0.7);
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .card-value {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>💼 ExpenseFlow Dashboard</h1>
+            <div class="status">
+                <div class="status-dot"></div>
+                <span>Connected to backend at <strong>http://localhost:8000</strong></span>
+            </div>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="grid">
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">Total Expenses</span>
+                    <div class="card-icon">📊</div>
+                </div>
+                <div class="card-value" id="totalExpenses">0</div>
+                <div class="card-change">+0 this month</div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">Total Amount</span>
+                    <div class="card-icon">💰</div>
+                </div>
+                <div class="card-value" id="totalAmount">$0</div>
+                <div class="card-change">+0% from last month</div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">Average Amount</span>
+                    <div class="card-icon">📈</div>
+                </div>
+                <div class="card-value" id="avgAmount">$0</div>
+                <div class="card-change">Per expense</div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">Categories</span>
+                    <div class="card-icon">🏷️</div>
+                </div>
+                <div class="card-value" id="totalCategories">0</div>
+                <div class="card-change">Active categories</div>
+            </div>
+        </div>
+
+        <!-- Charts Section -->
+        <div class="charts-grid">
+            <div class="chart-card">
+                <h2>📊 Expenses by Category</h2>
+                <div class="chart-container">
+                    <canvas id="categoryChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-card">
+                <h2>📈 Spending Trend</h2>
+                <div class="chart-container">
+                    <canvas id="trendChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="charts-grid">
+            <div class="chart-card">
+                <h2>🥧 Category Distribution</h2>
+                <div class="chart-container">
+                    <canvas id="pieChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-card">
+                <h2>💹 Monthly Comparison</h2>
+                <div class="chart-container">
+                    <canvas id="barChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add Expense Form -->
+        <div class="expense-form">
+            <h2 style="margin-bottom: 20px; color: #333;">➕ Add New Expense</h2>
+            
+            <div class="success-message" id="successMessage">
+                ✅ Expense added successfully!
+            </div>
+            
+            <div class="error-message" id="errorMessage">
+                ❌ Error adding expense. Please try again.
+            </div>
+            
+            <form id="expenseForm">
+                <div class="grid">
+                    <div class="form-group">
+                        <label for="title">Title *</label>
+                        <input type="text" id="title" required placeholder="e.g., Office Supplies">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="amount">Amount *</label>
+                        <input type="number" id="amount" step="0.01" required placeholder="0.00">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="category">Category *</label>
+                        <select id="category" required>
+                            <option value="">Select category</option>
+                            <option value="Office">Office Supplies</option>
+                            <option value="Meals">Meals & Entertainment</option>
+                            <option value="Travel">Travel</option>
+                            <option value="Software">Software</option>
+                            <option value="Hardware">Hardware</option>
+                            <option value="Marketing">Marketing</option>
+                            <option value="Training">Training</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="date">Date *</label>
+                        <input type="date" id="date" required>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="description">Description</label>
+                    <textarea id="description" rows="3" placeholder="Optional description..."></textarea>
+                </div>
+                
+                <button type="submit" class="btn">Add Expense</button>
+            </form>
+        </div>
+
+        <!-- Expenses List -->
+        <div class="expenses-list">
+            <h2 style="margin-bottom: 20px; color: #333;">📋 Recent Expenses</h2>
+            <div id="expensesList">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Loading expenses...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:8000';
+        
+        // Chart instances
+        let categoryChart, trendChart, pieChart, barChart;
+        
+        // Set today's date as default
+        document.getElementById('date').valueAsDate = new Date();
+        
+        // Initialize charts
+        initializeCharts();
+        
+        // Load expenses on page load
+        loadExpenses();
+        loadStats();
+        
+        // Auto-refresh every 5 seconds
+        setInterval(() => {
+            loadExpenses();
+            loadStats();
+        }, 5000);
+        
+        // Handle form submission
+        document.getElementById('expenseForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const expense = {
+                title: document.getElementById('title').value,
+                amount: parseFloat(document.getElementById('amount').value),
+                category: document.getElementById('category').value,
+                date: document.getElementById('date').value,
+                description: document.getElementById('description').value || null
+            };
+            
+            try {
+                const response = await fetch(`${API_URL}/api/expenses`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(expense)
+                });
+                
+                if (response.ok) {
+                    showMessage('success');
+                    document.getElementById('expenseForm').reset();
+                    document.getElementById('date').valueAsDate = new Date();
+                    loadExpenses();
+                    loadStats();
+                } else {
+                    showMessage('error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showMessage('error');
+            }
+        });
+        
+        function initializeCharts() {
+            // Category Bar Chart
+            const ctxCategory = document.getElementById('categoryChart').getContext('2d');
+            categoryChart = new Chart(ctxCategory, {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Amount Spent',
+                        data: [],
+                        backgroundColor: [
+                            'rgba(102, 126, 234, 0.8)',
+                            'rgba(118, 75, 162, 0.8)',
+                            'rgba(237, 100, 166, 0.8)',
+                            'rgba(255, 154, 158, 0.8)',
+                            'rgba(250, 208, 196, 0.8)',
+                            'rgba(155, 93, 229, 0.8)',
+                            'rgba(72, 219, 251, 0.8)',
+                            'rgba(16, 185, 129, 0.8)'
+                        ],
+                        borderColor: [
+                            'rgba(102, 126, 234, 1)',
+                            'rgba(118, 75, 162, 1)',
+                            'rgba(237, 100, 166, 1)',
+                            'rgba(255, 154, 158, 1)',
+                            'rgba(250, 208, 196, 1)',
+                            'rgba(155, 93, 229, 1)',
+                            'rgba(72, 219, 251, 1)',
+                            'rgba(16, 185, 129, 1)'
+                        ],
+                        borderWidth: 2,
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            padding: 12,
+                            titleColor: '#fff',
+                            bodyColor: '#fff',
+                            borderColor: 'rgba(255, 255, 255, 0.2)',
+                            borderWidth: 1
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: 'rgba(255, 255, 255, 0.7)',
+                                callback: function(value) {
+                                    return '$' + value;
+                                }
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                color: 'rgba(255, 255, 255, 0.7)'
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Trend Line Chart
+            const ctxTrend = document.getElementById('trendChart').getContext('2d');
+            trendChart = new Chart(ctxTrend, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Daily Spending',
+                        data: [],
+                        borderColor: 'rgba(102, 126, 234, 1)',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: 'rgba(102, 126, 234, 1)',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 5,
+                        pointHoverRadius: 7
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            padding: 12,
+                            titleColor: '#fff',
+                            bodyColor: '#fff',
+                            borderColor: 'rgba(255, 255, 255, 0.2)',
+                            borderWidth: 1
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: 'rgba(255, 255, 255, 0.7)',
+                                callback: function(value) {
+                                    return '$' + value;
+                                }
+                            }
+                        },
+                        x: {
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.05)'
+                            },
+                            ticks: {
+                                color: 'rgba(255, 255, 255, 0.7)'
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Pie Chart
+            const ctxPie = document.getElementById('pieChart').getContext('2d');
+            pieChart = new Chart(ctxPie, {
+                type: 'doughnut',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        data: [],
+                        backgroundColor: [
+                            'rgba(102, 126, 234, 0.8)',
+                            'rgba(118, 75, 162, 0.8)',
+                            'rgba(237, 100, 166, 0.8)',
+                            'rgba(255, 154, 158, 0.8)',
+                            'rgba(250, 208, 196, 0.8)',
+                            'rgba(155, 93, 229, 0.8)',
+                            'rgba(72, 219, 251, 0.8)',
+                            'rgba(16, 185, 129, 0.8)'
+                        ],
+                        borderColor: '#0a0e27',
+                        borderWidth: 3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: {
+                                color: 'rgba(255, 255, 255, 0.9)',
+                                padding: 15,
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            padding: 12,
+                            titleColor: '#fff',
+                            bodyColor: '#fff',
+                            borderColor: 'rgba(255, 255, 255, 0.2)',
+                            borderWidth: 1,
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    label += '$' + context.parsed.toFixed(2);
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Bar Chart for Monthly Comparison
+            const ctxBar = document.getElementById('barChart').getContext('2d');
+            barChart = new Chart(ctxBar, {
+                type: 'bar',
+                data: {
+                    labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+                    datasets: [{
+                        label: 'This Month',
+                        data: [0, 0, 0, 0],
+                        backgroundColor: 'rgba(102, 126, 234, 0.8)',
+                        borderColor: 'rgba(102, 126, 234, 1)',
+                        borderWidth: 2,
+                        borderRadius: 8
+                    }, {
+                        label: 'Last Month',
+                        data: [0, 0, 0, 0],
+                        backgroundColor: 'rgba(118, 75, 162, 0.8)',
+                        borderColor: 'rgba(118, 75, 162, 1)',
+                        borderWidth: 2,
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: 'rgba(255, 255, 255, 0.9)',
+                                padding: 15
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            padding: 12,
+                            titleColor: '#fff',
+                            bodyColor: '#fff',
+                            borderColor: 'rgba(255, 255, 255, 0.2)',
+                            borderWidth: 1
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: 'rgba(255, 255, 255, 0.7)',
+                                callback: function(value) {
+                                    return '$' + value;
+                                }
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                color: 'rgba(255, 255, 255, 0.7)'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        function updateCharts(expenses) {
+            // Update Category Chart
+            const categoryData = {};
+            const trendData = {};
+            
+            expenses.forEach(expense => {
+                // Category aggregation
+                if (!categoryData[expense.category]) {
+                    categoryData[expense.category] = 0;
+                }
+                categoryData[expense.category] += expense.amount;
+                
+                // Trend aggregation by date
+                const date = new Date(expense.date).toLocaleDateString();
+                if (!trendData[date]) {
+                    trendData[date] = 0;
+                }
+                trendData[date] += expense.amount;
+            });
+            
+            // Update Category Bar Chart
+            categoryChart.data.labels = Object.keys(categoryData);
+            categoryChart.data.datasets[0].data = Object.values(categoryData);
+            categoryChart.update();
+            
+            // Update Pie Chart
+            pieChart.data.labels = Object.keys(categoryData);
+            pieChart.data.datasets[0].data = Object.values(categoryData);
+            pieChart.update();
+            
+            // Update Trend Chart
+            const sortedDates = Object.keys(trendData).sort((a, b) => new Date(a) - new Date(b));
+            trendChart.data.labels = sortedDates;
+            trendChart.data.datasets[0].data = sortedDates.map(date => trendData[date]);
+            trendChart.update();
+            
+            // Update Bar Chart with random weekly data for demo
+            const weeklyData = [0, 0, 0, 0];
+            expenses.forEach(expense => {
+                const day = new Date(expense.date).getDate();
+                const week = Math.floor((day - 1) / 7);
+                if (week < 4) {
+                    weeklyData[week] += expense.amount;
+                }
+            });
+            barChart.data.datasets[0].data = weeklyData;
+            barChart.update();
+        }
+        
+        async function loadExpenses() {
+            try {
+                const response = await fetch(`${API_URL}/api/expenses`);
+                const data = await response.json();
+                
+                const expensesList = document.getElementById('expensesList');
+                
+                if (data.expenses && data.expenses.length > 0) {
+                    expensesList.innerHTML = data.expenses.map(expense => `
+                        <div class="expense-item">
+                            <div class="expense-info">
+                                <h3>${expense.title}</h3>
+                                <p>${expense.description || 'No description'}</p>
+                                <span class="expense-category category-${expense.category.toLowerCase()}">
+                                    ${expense.category}
+                                </span>
+                                <p style="margin-top: 5px; font-size: 0.85em;">
+                                    📅 ${new Date(expense.date).toLocaleDateString()}
+                                </p>
+                            </div>
+                            <div>
+                                <div class="expense-amount">$${expense.amount.toFixed(2)}</div>
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    expensesList.innerHTML = '<p style="text-align: center; color: #666; padding: 40px;">No expenses yet. Add your first expense above!</p>';
+                }
+            } catch (error) {
+                console.error('Error loading expenses:', error);
+                document.getElementById('expensesList').innerHTML = '<p style="text-align: center; color: #ef4444; padding: 40px;">❌ Error loading expenses. Make sure backend is running.</p>';
+            }
+        }
+        
+        async function loadStats() {
+            try {
+                const response = await fetch(`${API_URL}/api/stats`);
+                const data = await response.json();
+                
+                if (data.success && data.stats) {
+                    document.getElementById('totalExpenses').textContent = data.stats.total_expenses;
+                    document.getElementById('totalAmount').textContent = '$' + data.stats.total_amount.toFixed(2);
+                    document.getElementById('avgAmount').textContent = '$' + data.stats.average_amount.toFixed(2);
+                    document.getElementById('totalCategories').textContent = Object.keys(data.stats.categories).length;
+                }
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        }
+        
+        function showMessage(type) {
+            const successMsg = document.getElementById('successMessage');
+            const errorMsg = document.getElementById('errorMessage');
+            
+            if (type === 'success') {
+                successMsg.style.display = 'block';
+                setTimeout(() => {
+                    successMsg.style.display = 'none';
+                }, 3000);
+            } else {
+                errorMsg.style.display = 'block';
+                setTimeout(() => {
+                    errorMsg.style.display = 'none';
+                }, 3000);
+            }
+        }
+    </script>
+</body>
+</html>

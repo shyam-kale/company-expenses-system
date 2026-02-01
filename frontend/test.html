@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ExpenseFlow - Expense Management System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+        }
+        
+        h1 {
+            color: #667eea;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: #666;
+            font-size: 1.2em;
+            margin-bottom: 30px;
+        }
+        
+        .status {
+            background: #f0f9ff;
+            border-left: 4px solid #3b82f6;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            text-align: left;
+        }
+        
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .status-item:last-child {
+            border-bottom: none;
+        }
+        
+        .status-label {
+            font-weight: 600;
+            color: #374151;
+        }
+        
+        .status-value {
+            color: #10b981;
+            font-weight: 500;
+        }
+        
+        .status-value.pending {
+            color: #f59e0b;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.1em;
+            border-radius: 10px;
+            cursor: pointer;
+            margin: 10px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .feature-list {
+            text-align: left;
+            margin: 20px 0;
+        }
+        
+        .feature-item {
+            padding: 10px;
+            margin: 5px 0;
+            background: #f9fafb;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .feature-item::before {
+            content: "✓";
+            color: #10b981;
+            font-weight: bold;
+            margin-right: 10px;
+            font-size: 1.2em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 ExpenseFlow</h1>
+        <p class="subtitle">Production-Grade Expense Management System</p>
+        
+        <div class="status">
+            <div class="status-item">
+                <span class="status-label">Backend Status:</span>
+                <span class="status-value" id="backendStatus">
+                    <span class="loading"></span>Checking...
+                </span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Database:</span>
+                <span class="status-value pending" id="dbStatus">Pending</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Redis Cache:</span>
+                <span class="status-value pending" id="redisStatus">Pending</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">AI Engine:</span>
+                <span class="status-value pending" id="aiStatus">Pending</span>
+            </div>
+        </div>
+        
+        <div class="feature-list">
+            <div class="feature-item">Real-time WebSocket Updates</div>
+            <div class="feature-item">AI-Powered Expense Categorization</div>
+            <div class="feature-item">Fraud Detection System</div>
+            <div class="feature-item">Interactive Analytics Dashboard</div>
+            <div class="feature-item">Budget Management & Alerts</div>
+        </div>
+        
+        <div style="margin-top: 30px;">
+            <a href="http://localhost:8000/docs" class="btn" target="_blank">
+                📚 API Documentation
+            </a>
+            <a href="http://localhost:8000/health" class="btn btn-secondary" target="_blank">
+                ❤️ Health Check
+            </a>
+        </div>
+        
+        <p style="margin-top: 20px; color: #666; font-size: 0.9em;">
+            Default Login: admin@expenseflow.com / admin123
+        </p>
+    </div>
+    
+    <script>
+        // Check backend health
+        async function checkHealth() {
+            try {
+                const response = await fetch('http://localhost:8000/health');
+                const data = await response.json();
+                
+                document.getElementById('backendStatus').innerHTML = '✓ Running';
+                document.getElementById('backendStatus').classList.remove('pending');
+                
+                if (data.services) {
+                    document.getElementById('dbStatus').innerHTML = 
+                        data.services.database === 'healthy' ? '✓ Connected' : '✗ Error';
+                    document.getElementById('dbStatus').classList.remove('pending');
+                    
+                    document.getElementById('redisStatus').innerHTML = 
+                        data.services.cache === 'healthy' ? '✓ Connected' : '✗ Error';
+                    document.getElementById('redisStatus').classList.remove('pending');
+                    
+                    document.getElementById('aiStatus').innerHTML = 
+                        data.services.ai === 'healthy' ? '✓ Ready' : '✗ Error';
+                    document.getElementById('aiStatus').classList.remove('pending');
+                }
+            } catch (error) {
+                document.getElementById('backendStatus').innerHTML = '✗ Not Running';
+                document.getElementById('backendStatus').style.color = '#ef4444';
+                console.error('Backend not available:', error);
+            }
+        }
+        
+        // Check health on load and every 5 seconds
+        checkHealth();
+        setInterval(checkHealth, 5000);
+    </script>
+</body>
+</html>

@@ -1,0 +1,224 @@
+.dashboard-page {
+  animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 25px;
+  margin-bottom: 30px;
+}
+
+.stat-card-dash {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  padding: 25px;
+  display: flex;
+  gap: 20px;
+  transition: all 0.3s;
+  animation: slideUp 0.6s ease backwards;
+}
+
+.stat-card-dash:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.stat-icon-dash {
+  width: 70px;
+  height: 70px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.5em;
+  flex-shrink: 0;
+}
+
+.stat-content-dash {
+  flex: 1;
+}
+
+.stat-label-dash {
+  font-size: 0.95em;
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: 8px;
+}
+
+.stat-value-dash {
+  font-size: 2.2em;
+  font-weight: 800;
+  color: #fff;
+  margin-bottom: 8px;
+}
+
+.stat-change-dash {
+  font-size: 0.9em;
+  font-weight: 600;
+}
+
+.stat-change-dash.positive {
+  color: #10b981;
+}
+
+.stat-change-dash.negative {
+  color: #ef4444;
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 25px;
+  margin-bottom: 30px;
+}
+
+.dashboard-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 25px;
+}
+
+.dashboard-card {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  padding: 30px;
+  transition: all 0.3s;
+}
+
+.dashboard-card.large {
+  grid-column: span 1;
+}
+
+.dashboard-card:hover {
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.card-header-dash {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+}
+
+.card-header-dash h3 {
+  font-size: 1.4em;
+  font-weight: 700;
+  color: #fff;
+}
+
+.card-header-dash p {
+  font-size: 0.9em;
+  color: rgba(255, 255, 255, 0.6);
+  margin-top: 5px;
+}
+
+.time-filter {
+  padding: 10px 15px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: #fff;
+  cursor: pointer;
+}
+
+.view-all-btn {
+  padding: 8px 16px;
+  background: rgba(102, 126, 234, 0.2);
+  border: 1px solid rgba(102, 126, 234, 0.3);
+  border-radius: 8px;
+  color: #667eea;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s;
+}
+
+.view-all-btn:hover {
+  background: rgba(102, 126, 234, 0.3);
+}
+
+.activity-list, .schedule-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.activity-item, .schedule-item {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 15px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 12px;
+  transition: all 0.3s;
+}
+
+.activity-item:hover, .schedule-item:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.activity-icon, .schedule-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 12px;
+  background: rgba(102, 126, 234, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5em;
+  flex-shrink: 0;
+}
+
+.activity-details, .schedule-details {
+  flex: 1;
+}
+
+.activity-title, .schedule-title {
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 4px;
+}
+
+.activity-time, .schedule-time {
+  font-size: 0.85em;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.activity-amount {
+  font-size: 1.3em;
+  font-weight: 700;
+  color: #667eea;
+}
+
+.schedule-status {
+  font-size: 1.5em;
+}
+
+@media (max-width: 1200px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .dashboard-grid-2 {
+    grid-template-columns: 1fr;
+  }
+}
